@@ -22,7 +22,7 @@ public class ImageResizerApp {
     }
 
     // Refactored method to handle resizing request
-    private static void handleResizeImageRequest(Context ctx) {
+    public static void handleResizeImageRequest(Context ctx) {
         // Extract parameters from the URL
         String imagePath = ctx.pathParam("imagePath");
         int width = Integer.parseInt(ctx.pathParam("width"));
@@ -40,22 +40,27 @@ public class ImageResizerApp {
     }
 
     // Method to resize the image
-    private static byte[] resizeImage(String imagePath, int width, int height) {
+    public static byte[] resizeImage(String imagePath, int width, int height) {
         try {
+            File imageFile = new File(imagePath);
+            if (!imageFile.exists()) {
+                throw new IOException("Image file does not exist: " + imagePath);
+            }
+    
             // Load the image from the given path
-            BufferedImage originalImage = ImageIO.read(new File(imagePath));
-
+            BufferedImage originalImage = ImageIO.read(imageFile);
+    
             // Ensure the image was loaded successfully
             if (originalImage == null) {
-                return null; // Return null if image couldn't be loaded
+                throw new IOException("Failed to load image from path: " + imagePath);
             }
-
+    
             // Create a new image with the specified width and height
             BufferedImage resizedImage = new BufferedImage(width, height, originalImage.getType());
             Graphics2D g = resizedImage.createGraphics();
             g.drawImage(originalImage, 0, 0, width, height, null);
             g.dispose();
-
+    
             // Write the resized image to a byte array and return it
             try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
                 ImageIO.write(resizedImage, "jpg", baos);
@@ -66,5 +71,5 @@ public class ImageResizerApp {
             System.err.println("Error resizing image: " + e.getMessage());
             return null; // Return null if an error occurs
         }
-    }
+    }    
 }
